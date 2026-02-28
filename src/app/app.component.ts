@@ -2,6 +2,8 @@ import {AfterViewInit, Component, OnInit, ViewChild} from "@angular/core";
 import {MatSidenav} from "@angular/material/sidenav";
 import {ActivationEnd, Router} from "@angular/router";
 import {faCog} from "@fortawesome/free-solid-svg-icons/faCog";
+import {faMoon} from "@fortawesome/free-solid-svg-icons/faMoon";
+import {faSun} from "@fortawesome/free-solid-svg-icons/faSun";
 import {NgScrollbar} from "ngx-scrollbar";
 import {filter, first} from "rxjs/operators";
 import {environment} from "../environments/environment";
@@ -11,6 +13,7 @@ import {FilterService} from "./services/filter.service";
 import {ScrollService} from "./services/scroll.service";
 import {SidenavService} from "./services/sidenav.service";
 import {SocketService} from "./services/socket.service";
+import {ThemeService} from "./services/theme.service";
 
 @Component({
   selector: "app-root",
@@ -19,6 +22,8 @@ import {SocketService} from "./services/socket.service";
 })
 export class AppComponent implements OnInit, AfterViewInit {
   public faCog = faCog;
+  public faMoon = faMoon;
+  public faSun = faSun;
   public title = "gotify-ext";
   public currentURL = "";
   @ViewChild("sidenav") public sidenav: MatSidenav;
@@ -26,7 +31,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild("scrollable") public scrollable: NgScrollbar;
 
   constructor(public sockets: SocketService, private sidenavService: SidenavService, private router: Router,
-              public filterService: FilterService, private alert: AlertService, private scroll: ScrollService) {
+              public filterService: FilterService, private alert: AlertService, private scroll: ScrollService,
+              public themeService: ThemeService) {
   }
 
   public ngOnInit() {
@@ -53,7 +59,7 @@ export class AppComponent implements OnInit, AfterViewInit {
           url: socket.GetURL(),
         });
       }
-      chrome.storage.sync.set({connections});
+      chrome.storage.local.set({connections});
     });
 
     // We'll tell the background script that the popup is open

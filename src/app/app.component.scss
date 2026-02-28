@@ -1,24 +1,47 @@
 .mat-sidenav-container {
   height: 100%;
 }
+
 .content {
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
-  margin-top: 5%;
+  margin-top: 8px;
+  padding-bottom: 16px;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 1px 4px var(--header-shadow);
+}
+
+.toolbar-title {
+  font-size: 16px;
+  font-weight: 400;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 580px;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
 }
 
 .global-scrollbar {
   --scrollbar-border-radius: 7px;
   --scrollbar-padding: 0px;
   --scrollbar-viewport-margin: 0;
-  --scrollbar-track-color: rgba(0,0,0,0.1);
+  --scrollbar-track-color: var(--scrollbar-track);
   --scrollbar-wrapper-color: transparent;
-  --scrollbar-thumb-color: rgba(0, 0, 0, 0.2);
-  --scrollbar-thumb-hover-color: var(--scrollbar-thumb-color);
-  --scrollbar-size: 10px;
-  --scrollbar-hover-size: calc(var(--scrollbar-size) * 2);
+  --scrollbar-thumb-color: var(--scrollbar-thumb);
+  --scrollbar-thumb-hover-color: var(--scrollbar-thumb-hover);
+  --scrollbar-size: 8px;
+  --scrollbar-hover-size: calc(var(--scrollbar-size) * 1.5);
   --scrollbar-thumb-transition: height 0ms, width 0ms;
   --scrollbar-track-transition: height 0ms, width 0ms;
   --scrollbar-gap: 0px;

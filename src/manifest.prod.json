@@ -1,7 +1,7 @@
 {
-  "name": "Gotify",
+  "name": "Gotify Markdown",
   "version": "{|vers|}",
-  "description": "Unofficial browser extension for Gotify",
+  "description": "Unofficial browser extension for Gotify with full Markdown support",
   "manifest_version": 2,
   "icons": {
     "16": "assets/logo-16.png",
@@ -12,15 +12,23 @@
     "scripts": [
       "background.js",
       "runtime.js"
-    ],
-    "styles": [
-      "styles.css"
     ]
   },
   "permissions": [
-    "storage"
+    "storage",
+    "<all_urls>"
   ],
   "browser_action": {
-    "default_popup": "index.html"
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "assets/logo-16.png",
+      "48": "assets/logo-48.png",
+      "128": "assets/logo-128.png"
+    }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "gotify-markdown@custom"
+    }
   }
 }

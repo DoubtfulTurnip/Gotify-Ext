@@ -1,86 +1,182 @@
-# Gotify Browser Extension
+# Gotify Markdown
 
-A browser extension for Gotify
+A Firefox/LibreWolf browser extension for [Gotify](https://gotify.net/) with full Markdown rendering support.
 
-## Support:
+Forked from [StewartThomson/Gotify-Ext](https://github.com/StewartThomson/Gotify-Ext) with added Markdown support and a modernized UI.
 
-- [Chrome](https://chrome.google.com/webstore/detail/gotify/defcailckfpgaigaiijligpnjipkhhmg)
-- [Firefox](https://addons.mozilla.org/en-CA/firefox/addon/gotify/)
+## Features
+
+- **Markdown rendering** - Messages sent with `text/markdown` content type are rendered as rich HTML
+  - Headings, bold, italic, strikethrough
+  - Inline and block images (clickable to open full-size)
+  - Links (open in new tab)
+  - Code blocks with syntax highlighting classes
+  - Blockquotes, ordered/unordered lists
+  - Horizontal rules
+- **Modernized UI** - Updated card layout with cleaner typography and spacing
+- **Firefox / LibreWolf** - Packaged as an installable `.xpi` add-on
 
 ## Installation
-You must configure your server CORS to allow the extension to make requests, like so:
-In your config.yml
+
+### 1. Install the extension
+
+Download the latest `gotify-markdown.xpi` from the [Releases](../../releases) page.
+
+> **Note:** This extension is self-signed and not distributed through the official Firefox Add-ons store. Before installing, you must allow unsigned extensions:
+> 1. Go to `about:config`
+> 2. Set `xpinstall.signatures.required` to `false`
+
+Then install the `.xpi`:
+
+1. Go to `about:addons` (`Ctrl+Shift+A`)
+2. Click the gear icon > **Install Add-on From File...**
+3. Select `gotify-markdown.xpi`
+
+Alternatively, load it temporarily for testing:
+
+1. Navigate to `about:debugging#/runtime/this-firefox`
+2. Click **Load Temporary Add-on...**
+3. Select the `manifest.json` inside the `dist/gotify-ext` folder
+
+### 2. Find your extension's internal UUID
+
+Firefox assigns each extension a unique internal UUID. You need this for the Gotify server configuration.
+
+1. Go to `about:debugging#/runtime/this-firefox`
+2. Find **Gotify Markdown** in the extensions list
+3. Copy the **Internal UUID** (e.g. `8b005804-f3ae-483c-82de-9c535a402c06`)
+
+### 3. Configure your Gotify server
+
+The extension needs CORS and WebSocket origin permissions on your Gotify server.
+
+**Docker Compose (environment variables):**
+
+```yaml
+environment:
+  GOTIFY_SERVER_CORS_ALLOWORIGINS: "- \"moz-extension://<your-extension-uuid>\""
+  GOTIFY_SERVER_CORS_ALLOWHEADERS: "- \"Authorization\"\n- \"content-type\""
+  GOTIFY_SERVER_CORS_ALLOWMETHODS: "- \"GET\"\n- \"POST\"\n- \"OPTIONS\"\n- \"DELETE\""
+  GOTIFY_SERVER_STREAM_ALLOWEDORIGINS: "- \"<your-extension-uuid>\""
 ```
+
+Replace `<your-extension-uuid>` with the Internal UUID from step 2.
+
+> **Note:** `CORS_ALLOWORIGINS` requires the full origin string including the `moz-extension://` prefix. `STREAM_ALLOWEDORIGINS` only needs the UUID portion (Gotify matches against the hostname part of the origin).
+
+**config.yml (alternative):**
+
+```yaml
 server:
   cors:
     alloworigins:
-        - "chrome-extension://defcailckfpgaigaiijligpnjipkhhmg"
+      - "moz-extension://<your-extension-uuid>"
     allowmethods:
-        - "GET"
-        - "POST"
-        - "OPTIONS"
-        - "DELETE"
+      - "GET"
+      - "POST"
+      - "OPTIONS"
+      - "DELETE"
     allowheaders:
-        - "Authorization"
-        - "content-type"
+      - "Authorization"
+      - "content-type"
   stream:
-    allowedorigins: # allowed origins for websocket connections (same origin is always allowed, default only same origin)
-      - "defcailckfpgaigaiijligpnjipkhhmg"
-```
-Or, in your docker-compose.yml
-```
-environment:
-       GOTIFY_SERVER_CORS_ALLOWORIGINS: "- \"chrome-extension://defcailckfpgaigaiijligpnjipkhhmg\""
-       GOTIFY_SERVER_CORS_ALLOWHEADERS: "- \"Authorization\"\n- \"content-type\""
-       GOTIFY_SERVER_CORS_ALLOWMETHODS: "- \"GET\"\n- \"POST\"\n- \"OPTIONS\"\n- \"DELETE\""
-       GOTIFY_SERVER_STREAM_ALLOWEDORIGINS: "- \"defcailckfpgaigaiijligpnjipkhhmg\""
+    allowedorigins:
+      - "<your-extension-uuid>"
 ```
 
-Note: if you are using firefox, the origin of the extension changes per-installation. This means that your installation will be unique per-device.
+> **Important:** If you're running Gotify via Docker Compose with environment variables, those take precedence over `config.yml`. Make sure you're editing the right configuration source.
 
-See: https://github.com/StewartThomson/Gotify-Ext/issues/44 
+### 4. Connect the extension
 
-Or you could just set the `Access-Control-Allow-Origin` to `"*"` and the `stream allowed origin` to `".*"` if you're real yolo about that kind of stuff.
+Click the Gotify Markdown icon in your browser toolbar, enter your Gotify server URL and credentials, and you're set.
 
-More info can be found here: https://gotify.net/docs/config
+## Sending Markdown Messages
 
-## Development
-Dependencies:
+To have messages render as Markdown, set the `content-type` extra to `text/markdown` when pushing messages. For example, with a Home Assistant automation:
 
-- Docker/docker-compose
+```yaml
+- action: rest_command.gotify_notification
+  data:
+    title: "Motion Detected"
+    message: "![Camera Image](http://your-camera/snapshot.jpg)"
+    extras:
+      client::display:
+        contentType: "text/markdown"
+```
 
-First, fire up the docker stack.
+Or via the Gotify API directly:
 
-```shell script
+```bash
+curl -X POST "https://gotify.example.com/message?token=YOUR_APP_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Test",
+    "message": "**Bold text** and an image:\n\n![photo](https://example.com/image.jpg)",
+    "extras": {
+      "client::display": {
+        "contentType": "text/markdown"
+      }
+    }
+  }'
+```
+
+## Building from Source
+
+### Prerequisites
+
+- Node.js (v18+ recommended; v22 works with compatibility flags)
+- npm
+- Python 3 (for Windows `.xpi` packaging)
+
+### Install dependencies
+
+```bash
+npm install --legacy-peer-deps
+```
+
+> The `--legacy-peer-deps` flag is needed because the project uses Angular 11 which has strict peer dependency requirements that conflict with modern npm.
+
+### Build the `.xpi`
+
+```bash
+# On Node.js 17+, set the OpenSSL legacy provider flag
+set NODE_OPTIONS=--openssl-legacy-provider   # Windows (cmd)
+$env:NODE_OPTIONS="--openssl-legacy-provider" # Windows (PowerShell)
+export NODE_OPTIONS=--openssl-legacy-provider # Linux/macOS
+
+npm run build:xpi
+```
+
+This will:
+1. Build the Angular production bundle
+2. Copy `manifest.prod.json` into `dist/gotify-ext/` with the version from `package.json`
+3. Package everything into `dist/gotify-ext.xpi`
+
+The resulting `.xpi` file can be installed directly in Firefox or LibreWolf.
+
+### Development
+
+Start the local Gotify dev server:
+
+```bash
 cd gotify_dev && docker-compose up
 ```
 
-This might take a while because `npm install` is running
+Build and watch for changes:
 
-### Chrome
-Next, navigate your browser to `chrome://extensions` and toggle `Developer mode` on.
+```bash
+set NODE_OPTIONS=--openssl-legacy-provider
+npm start
+```
 
-Then, click `Load unpacked` and load up the `dist/gotify-ext` folder. (this will only work if you have run the initial build earlier)
+Then load the extension temporarily from `about:debugging` pointing to `dist/gotify-ext/manifest.json`. The dev Gotify server runs at `http://localhost:8000` with username `admin` and password `admin`.
 
-### Firefox
-Next, navigate your browser to `about:debugging`
+### Versioning
 
-Then, click `Load Temporary Add-on...` and load up the `dist/gotify-ext/manifest.json` folder. (this will only work if you have run the initial build earlier)
+Update the version in `package.json`. The build script reads the version from there and stamps it into the production manifest automatically.
 
-### First run
-If you have both the production gotify extension and are developing, you can tell the difference as the development version has this little notification when you open the popup:
+## Credits
 
-![Dev notification](images/dev_notif.png)
-
-You can now add your local docker gotify server to your dev extension with a url of `http://localhost:8000`, and the username and password both being `admin`.
-
-![Dev login](images/dev_login.png)
-
-You should be all set. I recommend using the [Gotify cli](https://github.com/gotify/cli) to test pushing messages to your dev server.
-
-### Building for prod
-In the root of the project, run `npm run prod` and it will create the necessary zip file for distribution using the most recent git tag as the version.
-
-The git tag should be updated using the [npm version](https://docs.npmjs.com/cli/version) command.
-
-Logo is from https://github.com/gotify/logo
+- Original extension: [StewartThomson/Gotify-Ext](https://github.com/StewartThomson/Gotify-Ext)
+- Logo: [gotify/logo](https://github.com/gotify/logo)
+- Gotify docs: [gotify.net/docs/config](https://gotify.net/docs/config)

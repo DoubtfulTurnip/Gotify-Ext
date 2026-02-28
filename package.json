@@ -1,10 +1,12 @@
 {
   "name": "gotify-ext",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --prod",
+    "build:xpi": "ng build --prod && node build-xpi.js",
     "prod": "ng build --prod && cp ./src/manifest.prod.json ./dist/gotify-ext/manifest.json && sed -i -e \"s/{|vers|}/$(git describe --tags --abbrev=0 | cut -c 2-)/g\" ./dist/gotify-ext/manifest.json && cd ./dist/gotify-ext && zip -r gotify-ext-dist.zip ./*",
     "deploy": "npm run prod && ./deploy.fish",
     "test": "ng test",

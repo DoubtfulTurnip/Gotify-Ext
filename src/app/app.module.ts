@@ -27,6 +27,7 @@ import {MessageViewComponent} from "./components/message-view/message-view.compo
 import {AppRoutingModule} from "./modules/app-routing/app-routing.module";
 import {DateAgoPipe} from "./pipes/date-ago.pipe";
 import {OrderByDatePipe} from "./pipes/order-by-date.pipe";
+import {MarkdownPipe} from "./pipes/markdown.pipe";
 
 @NgModule({
   bootstrap: [AppComponent],
@@ -36,7 +37,7 @@ import {OrderByDatePipe} from "./pipes/order-by-date.pipe";
     AddViewComponent,
     DateAgoPipe,
     OrderByDatePipe,
-    OrderByDatePipe,
+    MarkdownPipe,
     BackToTopComponent,
   ],
   imports: [

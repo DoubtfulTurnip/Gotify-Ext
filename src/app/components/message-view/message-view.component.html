@@ -1,39 +1,30 @@
-<div *ngIf="viewMessages.length === 0; else messageList">
-  <h1>No messages</h1>
+<div *ngIf="viewMessages.length === 0; else messageList" class="empty-state">
+  <mat-icon class="empty-icon">notifications_none</mat-icon>
+  <h2>No messages</h2>
+  <p>Messages will appear here when received</p>
 </div>
 <ng-template #messageList>
-  <button mat-raised-button color="primary" (click)="DeleteAllMessages()">
-    DELETE ALL
+  <button mat-stroked-button color="warn" class="delete-all-btn" (click)="DeleteAllMessages()">
+    <mat-icon>delete_sweep</mat-icon> Clear All
   </button>
-  <mat-card *ngFor="let message of viewMessages |  orderBy:'-date'; let i = index">
-    <mat-card-title-group>
-      <mat-card-title>
-        {{message.title}}
-      </mat-card-title>
-      <mat-card-subtitle *ngIf="url === 'All'">
-        {{message.url}}
-      </mat-card-subtitle>
-    </mat-card-title-group>
-    <mat-card-content>
-      {{message.message}}
+  <mat-card *ngFor="let message of viewMessages | orderBy:'-date'; let i = index" class="message-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="msg-avatar">notifications</mat-icon>
+      <mat-card-title class="msg-title">{{message.title}}</mat-card-title>
+      <mat-card-subtitle *ngIf="url === 'All'" class="msg-subtitle">{{message.url}}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content class="msg-content" [innerHTML]="message.message | markdown">
     </mat-card-content>
-    <mat-card-footer>
-      <mat-grid-list cols="2" rowHeight="3:0.5">
-        <mat-grid-tile>
-          <mat-grid-tile-footer>{{message.date | dateAgo}}</mat-grid-tile-footer>
-        </mat-grid-tile>
-        <mat-grid-tile>
-          <mat-grid-tile-footer>
-            <button mat-raised-button (click)="DeleteMessage(message, i)">
-              <fa-icon [icon]="faTrashAlt"></fa-icon>
-            </button>
-          </mat-grid-tile-footer>
-        </mat-grid-tile>
-      </mat-grid-list>
-    </mat-card-footer>
+    <mat-card-actions class="msg-actions" align="end">
+      <span class="msg-timestamp">{{message.date | dateAgo}}</span>
+      <span class="spacer"></span>
+      <button mat-icon-button color="warn" class="msg-delete-btn" (click)="DeleteMessage(message, i)" title="Delete message">
+        <fa-icon [icon]="faTrashAlt"></fa-icon>
+      </button>
+    </mat-card-actions>
   </mat-card>
   <div *ngIf="showLoadMore" class="load-more-area">
-    <button *ngIf="numLoading === 0" mat-raised-button color="primary" (click)="LoadMore()">
+    <button *ngIf="numLoading === 0" mat-stroked-button color="primary" (click)="LoadMore()">
       Load More...
     </button>
     <mat-progress-bar class="load-more-bar" *ngIf="numLoading > 0" mode="indeterminate"></mat-progress-bar>

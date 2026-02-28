@@ -1,0 +1,107 @@
+// Custom Angular Material theme with light/dark mode support
+@import '~@angular/material/theming';
+
+// Include core styles once (typography, ripple, a11y, overlay)
+@include mat-core();
+
+// Define palettes to match the original indigo-pink prebuilt theme
+$app-primary: mat-palette($mat-indigo);
+$app-accent:  mat-palette($mat-pink, A200, A100, A400);
+$app-warn:    mat-palette($mat-red);
+
+// --- Light theme (default) ---
+$app-light-theme: mat-light-theme($app-primary, $app-accent, $app-warn);
+@include angular-material-theme($app-light-theme);
+
+// --- Dark theme (toggled via .dark-theme class on body) ---
+$app-dark-theme: mat-dark-theme($app-primary, $app-accent, $app-warn);
+
+.dark-theme {
+  @include angular-material-color($app-dark-theme);
+}
+
+// ============================================================
+// CSS Custom Properties — Light / Dark
+// ============================================================
+
+:root {
+  // App surfaces
+  --app-background: #fafafa;
+  --surface-card: #ffffff;
+
+  // Primary brand
+  --primary-color: #3f51b5;
+  --primary-color-alpha-04: rgba(63, 81, 181, 0.04);
+
+  // Text hierarchy
+  --text-emphasis: rgba(0, 0, 0, 0.87);
+  --text-primary: rgba(0, 0, 0, 0.78);
+  --text-secondary-strong: rgba(0, 0, 0, 0.65);
+  --text-secondary: rgba(0, 0, 0, 0.54);
+  --text-hint: rgba(0, 0, 0, 0.45);
+  --text-disabled: rgba(0, 0, 0, 0.38);
+
+  // Dividers and borders
+  --divider-color: rgba(0, 0, 0, 0.08);
+  --divider-subtle: rgba(0, 0, 0, 0.04);
+
+  // Shadows
+  --header-shadow: rgba(0, 0, 0, 0.12);
+  --card-shadow-1: rgba(0, 0, 0, 0.08);
+  --card-shadow-2: rgba(0, 0, 0, 0.12);
+  --card-shadow-hover-1: rgba(0, 0, 0, 0.12);
+  --card-shadow-hover-2: rgba(0, 0, 0, 0.08);
+  --image-shadow: rgba(0, 0, 0, 0.15);
+  --image-shadow-hover: rgba(0, 0, 0, 0.25);
+
+  // Code blocks
+  --code-block-bg: #f5f5f5;
+  --code-block-border: rgba(0, 0, 0, 0.06);
+  --code-inline-bg: rgba(0, 0, 0, 0.05);
+
+  // Scrollbar
+  --scrollbar-track: rgba(0, 0, 0, 0.05);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.15);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
+}
+
+.dark-theme {
+  // App surfaces
+  --app-background: #303030;
+  --surface-card: #424242;
+
+  // Primary brand (lighter for dark backgrounds)
+  --primary-color: #7986cb;
+  --primary-color-alpha-04: rgba(121, 134, 203, 0.06);
+
+  // Text hierarchy (inverted)
+  --text-emphasis: rgba(255, 255, 255, 0.95);
+  --text-primary: rgba(255, 255, 255, 0.87);
+  --text-secondary-strong: rgba(255, 255, 255, 0.7);
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-hint: rgba(255, 255, 255, 0.5);
+  --text-disabled: rgba(255, 255, 255, 0.38);
+
+  // Dividers and borders
+  --divider-color: rgba(255, 255, 255, 0.12);
+  --divider-subtle: rgba(255, 255, 255, 0.06);
+
+  // Shadows (stronger on dark backgrounds)
+  --header-shadow: rgba(0, 0, 0, 0.3);
+  --card-shadow-1: rgba(0, 0, 0, 0.2);
+  --card-shadow-2: rgba(0, 0, 0, 0.25);
+  --card-shadow-hover-1: rgba(0, 0, 0, 0.3);
+  --card-shadow-hover-2: rgba(0, 0, 0, 0.2);
+  --image-shadow: rgba(0, 0, 0, 0.3);
+  --image-shadow-hover: rgba(0, 0, 0, 0.5);
+
+  // Code blocks
+  --code-block-bg: #2a2a2a;
+  --code-block-border: rgba(255, 255, 255, 0.08);
+  --code-inline-bg: rgba(255, 255, 255, 0.08);
+
+  // Scrollbar
+  --scrollbar-track: rgba(255, 255, 255, 0.05);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.35);
+}

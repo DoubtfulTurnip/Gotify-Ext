@@ -1,5 +1,27 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles for Gotify Extension */
 
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; width: 800px; height: 500px; }
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  width: 800px;
+  height: 500px;
+  background: var(--app-background);
+  transition: background-color 0.2s ease;
+}
 app-root { height: 500px; display: block; }
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}

@@ -55,8 +55,8 @@ export class SocketService {
 
   public loadConnections() {
     return new Promise((resolve) => {
-      chrome.storage.sync.get("connections", (res) => {
-        if ("connections" in res) {
+      chrome.storage.local.get("connections", (res) => {
+        if (res && "connections" in res) {
           const connections = res.connections;
           for (const connectionInfo of connections) {
             this.open(connectionInfo.url, connectionInfo.token);
