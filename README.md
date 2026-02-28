@@ -92,19 +92,9 @@ Click the Gotify Markdown icon in your browser toolbar, enter your Gotify server
 
 ## Sending Markdown Messages
 
-To have messages render as Markdown, set the `content-type` extra to `text/markdown` when pushing messages. For example, with a Home Assistant automation:
+To have messages render as Markdown, set the `contentType` extra to `text/markdown` when pushing messages.
 
-```yaml
-- action: rest_command.gotify_notification
-  data:
-    title: "Motion Detected"
-    message: "![Camera Image](http://your-camera/snapshot.jpg)"
-    extras:
-      client::display:
-        contentType: "text/markdown"
-```
-
-Or via the Gotify API directly:
+Via the Gotify REST API:
 
 ```bash
 curl -X POST "https://gotify.example.com/message?token=YOUR_APP_TOKEN" \
