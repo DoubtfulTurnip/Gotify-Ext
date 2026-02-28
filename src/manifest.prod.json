@@ -30,7 +30,7 @@
     "gecko": {
       "id": "gotify-markdown@custom",
       "data_collection_permissions": {
-        "required": [],
+        "required": ["none"],
         "optional": []
       }
     }
