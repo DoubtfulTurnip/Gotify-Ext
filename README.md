@@ -44,7 +44,7 @@ Firefox assigns each extension a unique internal UUID. You need this for the Got
 
 1. Go to `about:debugging#/runtime/this-firefox`
 2. Find **Gotify Markdown** in the extensions list
-3. Copy the **Internal UUID** (e.g. `8b005804-f3ae-483c-82de-9c535a402c06`)
+3. Copy the **Internal UUID** (e.g. `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`)
 
 ### 3. Configure your Gotify server
 
