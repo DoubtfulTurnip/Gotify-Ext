@@ -9,7 +9,8 @@
   </button>
   <mat-card *ngFor="let message of viewMessages | orderBy:'-date'; let i = index" class="message-card">
     <mat-card-header>
-      <mat-icon mat-card-avatar class="msg-avatar">notifications</mat-icon>
+      <img *ngIf="getAppIcon(message)" mat-card-avatar [src]="getAppIcon(message)" class="msg-avatar" loading="lazy" [alt]="message.title">
+      <mat-icon *ngIf="!getAppIcon(message)" mat-card-avatar class="msg-avatar">notifications</mat-icon>
       <mat-card-title class="msg-title">{{message.title}}</mat-card-title>
       <mat-card-subtitle *ngIf="url === 'All'" class="msg-subtitle">{{message.url}}</mat-card-subtitle>
     </mat-card-header>

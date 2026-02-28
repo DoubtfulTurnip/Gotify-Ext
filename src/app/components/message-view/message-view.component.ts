@@ -1,9 +1,10 @@
-import {Component, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {ActivatedRoute} from "@angular/router";
 import {faTrashAlt} from "@fortawesome/free-solid-svg-icons/faTrashAlt";
 import {Subject} from "rxjs";
 import {takeUntil} from "rxjs/operators";
 import {GotifySocket} from "../../classes/gotify-socket";
+import {Application} from "../../models/application.model";
 import {BulkMessages} from "../../models/bulk-messages.model";
 import {Message} from "../../models/message.model";
 import {AlertService} from "../../services/alert.service";
@@ -23,6 +24,8 @@ export class MessageViewComponent implements OnInit, OnDestroy {
   private destroy$: Subject<boolean> = new Subject<boolean>();
   private isInitialLoad = true;
 
+  private appIcons = new Map<string, string>();
+
   public faTrashAlt = faTrashAlt;
   public url: string;
   public messages: Message[];
@@ -31,7 +34,8 @@ export class MessageViewComponent implements OnInit, OnDestroy {
   public numLoading = 0;
 
   constructor(private route: ActivatedRoute, private gotifyAPI: GotifyAPIService, private sockets: SocketService,
-              private alert: AlertService, private filterService: FilterService, private scroll: ScrollService) {
+              private alert: AlertService, private filterService: FilterService, private scroll: ScrollService,
+              private cdr: ChangeDetectorRef) {
   }
 
   public ngOnInit() {
@@ -40,7 +44,9 @@ export class MessageViewComponent implements OnInit, OnDestroy {
       this.messages = [];
       this.url = params.url ? decodeURIComponent(params.url) : "All";
       this.oldestMsgPerServer.clear();
+      this.appIcons.clear();
       this.LoadMessages();
+      this.loadAppIcons();
       if (this.url === "All") {
         this.sockets.initSocket().pipe(takeUntil(this.destroy$)).subscribe((res: GotifySocket) => {
           res.GetMessageSubscription().subscribe((msg) => {
@@ -69,6 +75,30 @@ export class MessageViewComponent implements OnInit, OnDestroy {
   private AddMessage(...msgs: Message[]) {
     this.messages = this.messages.concat(...msgs);
     this.filterMessages();
+  }
+
+  public getAppIcon(message: Message): string | null {
+    return this.appIcons.get(`${message.url}:${message.appid}`) || null;
+  }
+
+  private loadAppIcons() {
+    const storeIcons = (apps: Application[], token: string) => {
+      for (const app of apps) {
+        if (!app.image) { continue; }
+        const base = app.image.startsWith("http") ? app.image : `${app.url}/${app.image.replace(/^\//, "")}`;
+        this.appIcons.set(`${app.url}:${app.id}`, base);
+      }
+      this.cdr.detectChanges();
+    };
+    if (this.url === "All") {
+      this.sockets.initSocket().pipe(takeUntil(this.destroy$)).subscribe((res: GotifySocket) => {
+        const token = res.GetToken();
+        this.gotifyAPI.GetApplications(res.GetURL(), token).subscribe((apps) => storeIcons(apps, token));
+      });
+    } else {
+      const token = this.sockets.getSocket(this.url).GetToken();
+      this.gotifyAPI.GetApplications(this.url, token).subscribe((apps) => storeIcons(apps, token));
+    }
   }
 
   private LoadMessages() {
