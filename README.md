@@ -1,11 +1,12 @@
-# Gotify Markdown
+# Gotify Notifications
 
-A Firefox/LibreWolf browser extension for [Gotify](https://gotify.net/) with full Markdown rendering support.
+A Firefox/LibreWolf browser extension for [Gotify](https://gotify.net/) with full Markdown rendering support and per-app icons.
 
-Forked from [StewartThomson/Gotify-Ext](https://github.com/StewartThomson/Gotify-Ext) with added Markdown support and a modernized UI.
+Forked from [StewartThomson/Gotify-Ext](https://github.com/StewartThomson/Gotify-Ext) with added Markdown support, per-app icons, and a modernized UI.
 
 ## Features
 
+- **Per-app icons** - Message cards display the icon set for each Gotify application
 - **Markdown rendering** - Messages sent with `text/markdown` content type are rendered as rich HTML
   - Headings, bold, italic, strikethrough
   - Inline and block images (clickable to open full-size)
@@ -14,23 +15,19 @@ Forked from [StewartThomson/Gotify-Ext](https://github.com/StewartThomson/Gotify
   - Blockquotes, ordered/unordered lists
   - Horizontal rules
 - **Modernized UI** - Updated card layout with cleaner typography and spacing
-- **Firefox / LibreWolf** - Packaged as an installable `.xpi` add-on
+- **Firefox / LibreWolf** - Signed and installable as an `.xpi` add-on
 
 ## Installation
 
 ### 1. Install the extension
 
-Download the latest `gotify-markdown.xpi` from the [Releases](../../releases) page.
+Download the latest `gotify-notifications-*.xpi` from the [Releases](../../releases) page.
 
-> **Note:** This extension is self-signed and not distributed through the official Firefox Add-ons store. Before installing, you must allow unsigned extensions:
-> 1. Go to `about:config`
-> 2. Set `xpinstall.signatures.required` to `false`
-
-Then install the `.xpi`:
+Install it:
 
 1. Go to `about:addons` (`Ctrl+Shift+A`)
 2. Click the gear icon > **Install Add-on From File...**
-3. Select `gotify-markdown.xpi`
+3. Select the downloaded `.xpi`
 
 Alternatively, load it temporarily for testing:
 
@@ -43,7 +40,7 @@ Alternatively, load it temporarily for testing:
 Firefox assigns each extension a unique internal UUID. You need this for the Gotify server configuration.
 
 1. Go to `about:debugging#/runtime/this-firefox`
-2. Find **Gotify Markdown** in the extensions list
+2. Find **Gotify Notifications** in the extensions list
 3. Copy the **Internal UUID** (e.g. `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`)
 
 ### 3. Configure your Gotify server
@@ -88,7 +85,7 @@ server:
 
 ### 4. Connect the extension
 
-Click the Gotify Markdown icon in your browser toolbar, enter your Gotify server URL and credentials, and you're set.
+Click the Gotify Notifications icon in your browser toolbar, enter your Gotify server URL and credentials, and you're set.
 
 ## Sending Markdown Messages
 
@@ -112,37 +109,16 @@ curl -X POST "https://gotify.example.com/message?token=YOUR_APP_TOKEN" \
 
 ## Building from Source
 
-### Prerequisites
+See [BUILD.md](BUILD.md) for full build instructions.
 
-- Node.js (v18+ recommended; v22 works with compatibility flags)
-- npm
-- Python 3 (for Windows `.xpi` packaging)
-
-### Install dependencies
+### Quick start
 
 ```bash
-npm install --legacy-peer-deps
-```
-
-> The `--legacy-peer-deps` flag is needed because the project uses Angular 11 which has strict peer dependency requirements that conflict with modern npm.
-
-### Build the `.xpi`
-
-```bash
-# On Node.js 17+, set the OpenSSL legacy provider flag
-set NODE_OPTIONS=--openssl-legacy-provider   # Windows (cmd)
-$env:NODE_OPTIONS="--openssl-legacy-provider" # Windows (PowerShell)
-export NODE_OPTIONS=--openssl-legacy-provider # Linux/macOS
-
+npm install
 npm run build:xpi
 ```
 
-This will:
-1. Build the Angular production bundle
-2. Copy `manifest.prod.json` into `dist/gotify-ext/` with the version from `package.json`
-3. Package everything into `dist/gotify-ext.xpi`
-
-The resulting `.xpi` file can be installed directly in Firefox or LibreWolf.
+Requires Node.js 22. The `.npmrc` in this repo handles the OpenSSL compatibility flag automatically.
 
 ### Development
 
@@ -152,18 +128,13 @@ Start the local Gotify dev server:
 cd gotify_dev && docker-compose up
 ```
 
-Build and watch for changes:
+Then run:
 
 ```bash
-set NODE_OPTIONS=--openssl-legacy-provider
 npm start
 ```
 
-Then load the extension temporarily from `about:debugging` pointing to `dist/gotify-ext/manifest.json`. The dev Gotify server runs at `http://localhost:8000` with username `admin` and password `admin`.
-
-### Versioning
-
-Update the version in `package.json`. The build script reads the version from there and stamps it into the production manifest automatically.
+Load the extension temporarily from `about:debugging` pointing to `dist/gotify-ext/manifest.json`. The dev Gotify server runs at `http://localhost:8000` with username `admin` and password `admin`.
 
 ## Credits
 
