@@ -1,5 +1,5 @@
 {
-  "name": "Gotify Markdown",
+  "name": "Gotify Notifications",
   "version": "{|vers|}",
   "description": "Unofficial browser extension for Gotify with full Markdown support",
   "manifest_version": 2,
