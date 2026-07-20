@@ -14,6 +14,7 @@ import {ScrollService} from "../../services/scroll.service";
 import {SocketService} from "../../services/socket.service";
 
 @Component({
+  standalone: false,
   selector: "app-message-view",
   styleUrls: ["./message-view.component.scss"],
   templateUrl: "./message-view.component.html",
@@ -32,6 +33,9 @@ export class MessageViewComponent implements OnInit, OnDestroy {
   public viewMessages: Message[] = [];
   public showLoadMore = true;
   public numLoading = 0;
+  public sortMode: "date" | "priority" = "date";
+  private loadedMedia = new Set<string>();
+  private expandedMessages = new Set<string>();
 
   constructor(private route: ActivatedRoute, private gotifyAPI: GotifyAPIService, private sockets: SocketService,
               private alert: AlertService, private filterService: FilterService, private scroll: ScrollService,
@@ -127,9 +131,9 @@ export class MessageViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  public DeleteMessage(msg: Message, index: number) {
+  public DeleteMessage(msg: Message) {
     this.gotifyAPI.DeleteMessage(msg.url, this.sockets.getSocket(msg.url).GetToken(), msg.id).subscribe(() => {
-      this.messages.splice(index, 1);
+      this.messages = this.messages.filter((candidate) => candidate !== msg);
       this.filterMessages();
     }, (err) => this.alert.error(err, `Unable to delete message`));
   }
@@ -184,5 +188,77 @@ export class MessageViewComponent implements OnInit, OnDestroy {
   public LoadMore() {
     this.isInitialLoad = false;
     this.LoadMessages();
+  }
+
+  public sortedMessages(): Message[] {
+    return this.viewMessages.map((message, index) => ({message, index})).sort((a, b) => {
+      const dateDelta = new Date(b.message.date).getTime() - new Date(a.message.date).getTime();
+      const result = this.sortMode === "priority"
+        ? (b.message.priority || 0) - (a.message.priority || 0) || dateDelta
+        : dateDelta;
+      return result || a.index - b.index;
+    }).map(({message}) => message);
+  }
+
+  public messageKey(message: Message): string {
+    return message.url + ":" + message.id;
+  }
+
+  public mediaLoaded(message: Message): boolean {
+    return this.loadedMedia.has(this.messageKey(message));
+  }
+
+  public loadMedia(message: Message): void {
+    this.loadedMedia.add(this.messageKey(message));
+  }
+
+  public hasRemoteMedia(message: Message): boolean {
+    return !!message.bigImageUrl() ||
+      (message.isMarkdown() && /!\[[^\]]*\]\(https?:\/\//i.test(message.message || ""));
+  }
+
+  public isLong(message: Message): boolean {
+    return (message.message || "").length > 600 || (message.message || "").split("\n").length > 10;
+  }
+
+  public isExpanded(message: Message): boolean {
+    return this.expandedMessages.has(this.messageKey(message));
+  }
+
+  public toggleExpanded(message: Message): void {
+    const key = this.messageKey(message);
+    this.expandedMessages.has(key) ? this.expandedMessages.delete(key) : this.expandedMessages.add(key);
+  }
+
+  public priorityLabel(priority: number): string {
+    if (priority >= 8) { return "Urgent " + priority; }
+    if (priority >= 5) { return "High " + priority; }
+    return "Priority " + (priority || 0);
+  }
+
+  public openUrl(url: string | null): void {
+    const safe = Message.safeHttpUrl(url);
+    if (!safe) { return; }
+    const opened = window.open(safe, "_blank", "noopener,noreferrer");
+    if (opened) { opened.opener = null; }
+  }
+
+  public copyMessage(message: Message): void {
+    if (!navigator.clipboard?.writeText) {
+      this.alert.error(new Error("Clipboard access is unavailable"), "Unable to copy message");
+      return;
+    }
+    navigator.clipboard.writeText(message.message || "")
+      .catch(() => this.alert.error(new Error("Clipboard access was denied"), "Unable to copy message"));
+  }
+
+  public downloadImage(message: Message): void {
+    const url = message.bigImageUrl();
+    if (!url || typeof chrome === "undefined" || !chrome.downloads?.download) { return; }
+    chrome.downloads.download({url, saveAs: true}, () => {
+      if (chrome.runtime?.lastError) {
+        this.alert.error(new Error(chrome.runtime.lastError.message), "Unable to download image");
+      }
+    });
   }
 }

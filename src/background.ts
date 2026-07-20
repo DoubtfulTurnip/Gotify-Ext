@@ -37,7 +37,7 @@ socket.loadConnections().then(() => {
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (changes.connections) {
-    const newConnections = changes.connections.newValue || [];
+    const newConnections = (changes.connections.newValue || []) as Array<{url: string; token: string}>;
     for (const connectionInfo of newConnections) {
       socket.open(connectionInfo.url, connectionInfo.token);
     }

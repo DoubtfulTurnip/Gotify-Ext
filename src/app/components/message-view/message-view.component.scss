@@ -264,3 +264,100 @@
   margin-top: 16px;
   margin-bottom: 16px;
 }
+// Message extras, privacy, and local actions
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  .delete-all-btn {
+    margin: 0 0 8px;
+  }
+}
+
+.sort-field {
+  width: 150px;
+  font-size: 12px;
+}
+
+.priority-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--divider-color);
+  color: var(--text-secondary);
+  font-size: 10px;
+  white-space: nowrap;
+
+  &.priority-high {
+    background: #f57c00;
+    color: white;
+  }
+
+  &.priority-urgent {
+    background: #c62828;
+    color: white;
+  }
+}
+
+.plain-message {
+  white-space: pre-wrap;
+}
+
+.message-body {
+  position: relative;
+
+  &.collapsed {
+    max-height: 260px;
+    overflow: hidden;
+
+    &::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 48px;
+      pointer-events: none;
+      background: linear-gradient(transparent, var(--card-background, white));
+    }
+  }
+}
+
+.big-image-area {
+  padding: 0 16px 10px;
+  text-align: center;
+}
+
+.big-image {
+  max-width: 100%;
+  max-height: 420px;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px var(--image-shadow);
+  cursor: pointer;
+}
+
+.load-media-btn,
+.expand-btn {
+  margin: 0 16px 8px;
+}
+
+::ng-deep .md-image-placeholder {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px dashed var(--divider-color);
+  border-radius: 4px;
+  color: var(--text-hint);
+  font-size: 11px;
+}
+
+.msg-content ::ng-deep pre {
+  max-height: 320px;
+  overflow: auto;
+}
+
+.msg-actions button {
+  width: 32px;
+  height: 32px;
+}

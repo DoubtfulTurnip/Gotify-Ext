@@ -18,7 +18,7 @@ import {MatSidenavModule} from "@angular/material/sidenav";
 import {MatToolbarModule} from "@angular/material/toolbar";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
-import {NgScrollbarModule} from "ngx-scrollbar";
+import {NgScrollbarModule, provideScrollbarOptions} from "ngx-scrollbar";
 import {ToastrModule} from "ngx-toastr";
 import {AppComponent} from "./app.component";
 import {AddViewComponent} from "./components/add-view/add-view.component";
@@ -57,11 +57,7 @@ import {MarkdownPipe} from "./pipes/markdown.pipe";
     FormsModule,
     MatCardModule,
     MatGridListModule,
-    NgScrollbarModule.withConfig({
-      appearance: "compact",
-      minThumbSize: 100,
-      visibility: "hover",
-    }),
+    NgScrollbarModule,
     FontAwesomeModule,
     ToastrModule.forRoot({
       countDuplicates: true,
@@ -74,7 +70,10 @@ import {MarkdownPipe} from "./pipes/markdown.pipe";
     MatProgressBarModule,
     OverlayModule,
   ],
-  providers: [],
+  providers: [provideScrollbarOptions({
+    appearance: "compact",
+    visibility: "hover",
+  })],
 })
 export class AppModule {
 }

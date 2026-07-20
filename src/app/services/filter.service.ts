@@ -28,7 +28,7 @@ export class FilterService {
             for (const app of apps) {
               this.applicationFiltered.set(app, true);
             }
-            this.changed$.next();
+            this.changed$.next(undefined);
           }, (err) => this.alert.error(err, "Unable to get applications"));
         } else {
           this.applicationFiltered.clear();
@@ -42,6 +42,6 @@ export class FilterService {
 
   public toggle(key: Application) {
     this.applicationFiltered.set(key, !this.applicationFiltered.get(key));
-    this.changed$.next();
+    this.changed$.next(undefined);
   }
 }

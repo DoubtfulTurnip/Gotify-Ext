@@ -1,13 +1,10 @@
-import {async, TestBed} from "@angular/core/testing";
+import {waitForAsync, TestBed} from "@angular/core/testing";
+import {AppModule} from "./app.module";
 import {AppComponent} from "./app.component";
 
 describe("AppComponent", () => {
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [
-        AppComponent,
-      ],
-    }).compileComponents();
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({imports: [AppModule]}).compileComponents();
   }));
 
   it("should create the app", () => {
@@ -26,6 +23,6 @@ describe("AppComponent", () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.debugElement.nativeElement;
-    expect(compiled.querySelector(".content span").textContent).toContain("gotify-ext app is running!");
+    expect(compiled.querySelector(".toolbar-title").textContent).toContain("Gotify");
   });
 });

@@ -2,6 +2,7 @@ import {Pipe, PipeTransform} from "@angular/core";
 import {DomSanitizer, SafeHtml} from "@angular/platform-browser";
 
 @Pipe({
+  standalone: false,
   name: "markdown",
 })
 export class MarkdownPipe implements PipeTransform {
@@ -18,20 +19,36 @@ export class MarkdownPipe implements PipeTransform {
     return text.replace(/[&<>"']/g, (m) => map[m]);
   }
 
-  private isSafeUrl(url: string): boolean {
-    return /^https?:\/\//i.test(url);
+  private decodeEscapedMarkdownValue(value: string): string {
+    return value.replace(/&quot;/g, "\"").replace(/&#39;/g, "'").replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">").replace(/&amp;/g, "&");
   }
 
-  private buildImageTag(url: string, alt: string, block: boolean): string {
-    const imgTag = `<img src="${url}" alt="${alt}" class="md-image" loading="lazy">`;
-    if (this.isSafeUrl(url)) {
-      const linked = `<a href="${url}" target="_blank" rel="noopener noreferrer" class="md-image-link">${imgTag}</a>`;
-      return block ? `<div class="md-image-block">${linked}</div>` : linked;
+  private canonicalHttpUrl(value: string): string | null {
+    try {
+      const parsed = new URL(this.decodeEscapedMarkdownValue(value));
+      return (parsed.protocol === "http:" || parsed.protocol === "https:") && parsed.hostname ? parsed.href : null;
+    } catch (_) {
+      return null;
     }
-    return block ? `<div class="md-image-block">${imgTag}</div>` : imgTag;
   }
-
-  private parseInlineMarkdown(text: string): string {
+  private buildImageTag(url: string, alt: string, block: boolean, loadImages: boolean): string {
+    const canonicalUrl = this.canonicalHttpUrl(url);
+    const encodedAlt = this.escapeHtml(this.decodeEscapedMarkdownValue(alt));
+    if (!canonicalUrl) {
+      return block ? `<div class="md-image-block">${encodedAlt}</div>` : encodedAlt;
+    }
+    if (!loadImages) {
+      const placeholder = '<span class="md-image-placeholder">Remote image blocked' +
+        (encodedAlt ? ': ' + encodedAlt : '') + '</span>';
+      return block ? '<div class="md-image-block">' + placeholder + '</div>' : placeholder;
+    }
+    const encodedUrl = this.escapeHtml(canonicalUrl);
+    const imgTag = `<img src="${encodedUrl}" alt="${encodedAlt}" class="md-image" loading="lazy">`;
+    const linked = `<a href="${encodedUrl}" target="_blank" rel="noopener noreferrer" class="md-image-link">${imgTag}</a>`;
+    return block ? `<div class="md-image-block">${linked}</div>` : linked;
+  }
+  private parseInlineMarkdown(text: string, loadImages: boolean): string {
     // Line breaks
     text = text.replace(/\n/g, "<br>");
     // Code (backticks)
@@ -46,14 +63,18 @@ export class MarkdownPipe implements PipeTransform {
     text = text.replace(/_([^_]+)_/g, "<em>$1</em>");
     // Images ![alt](url) - MUST be before links
     text = text.replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, (match, alt, url) => {
-      return this.buildImageTag(url, alt, false);
+      return this.buildImageTag(url, alt, false, loadImages);
     });
     // Links [text](url)
-    text = text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-    return text;
+    text = text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (_match, label, url) => {
+      const canonicalUrl = this.canonicalHttpUrl(url);
+      return canonicalUrl
+        ? `<a href="${this.escapeHtml(canonicalUrl)}" target="_blank" rel="noopener noreferrer">${label}</a>`
+        : label;
+    });    return text;
   }
 
-  private parseBlockMarkdown(text: string): string {
+  private parseBlockMarkdown(text: string, loadImages: boolean): string {
     let html = "";
     const lines = text.split("\n");
     let i = 0;
@@ -94,7 +115,7 @@ export class MarkdownPipe implements PipeTransform {
       const headerMatch = trimmed.match(/^(#+)\s+(.+)$/);
       if (headerMatch) {
         const level = Math.min(headerMatch[1].length, 6);
-        const content = this.parseInlineMarkdown(this.escapeHtml(headerMatch[2]));
+        const content = this.parseInlineMarkdown(this.escapeHtml(headerMatch[2]), loadImages);
         html += `<h${level}>${content}</h${level}>`;
         i++;
         continue;
@@ -105,7 +126,7 @@ export class MarkdownPipe implements PipeTransform {
       if (imageMatch) {
         const alt = this.escapeHtml(imageMatch[1]);
         const url = this.escapeHtml(imageMatch[2]);
-        html += this.buildImageTag(url, alt, true);
+        html += this.buildImageTag(url, alt, true, loadImages);
         i++;
         continue;
       }
@@ -118,7 +139,7 @@ export class MarkdownPipe implements PipeTransform {
           quoteLines.push(quoteLine);
           i++;
         }
-        const quoteContent = this.parseInlineMarkdown(this.escapeHtml(quoteLines.join("\n")));
+        const quoteContent = this.parseInlineMarkdown(this.escapeHtml(quoteLines.join("\n")), loadImages);
         html += `<blockquote>${quoteContent}</blockquote>`;
         continue;
       }
@@ -128,7 +149,7 @@ export class MarkdownPipe implements PipeTransform {
         html += "<ul>";
         while (i < lines.length && /^[\-\*\+]\s+/.test(lines[i].trim())) {
           const itemText = lines[i].trim().replace(/^[\-\*\+]\s+/, "");
-          const content = this.parseInlineMarkdown(this.escapeHtml(itemText));
+          const content = this.parseInlineMarkdown(this.escapeHtml(itemText), loadImages);
           html += `<li>${content}</li>`;
           i++;
         }
@@ -141,7 +162,7 @@ export class MarkdownPipe implements PipeTransform {
         html += "<ol>";
         while (i < lines.length && /^\d+\.\s+/.test(lines[i].trim())) {
           const itemText = lines[i].trim().replace(/^\d+\.\s+/, "");
-          const content = this.parseInlineMarkdown(this.escapeHtml(itemText));
+          const content = this.parseInlineMarkdown(this.escapeHtml(itemText), loadImages);
           html += `<li>${content}</li>`;
           i++;
         }
@@ -150,7 +171,7 @@ export class MarkdownPipe implements PipeTransform {
       }
 
       // Paragraphs
-      const content = this.parseInlineMarkdown(this.escapeHtml(trimmed));
+      const content = this.parseInlineMarkdown(this.escapeHtml(trimmed), loadImages);
       html += `<p>${content}</p>`;
       i++;
     }
@@ -158,12 +179,12 @@ export class MarkdownPipe implements PipeTransform {
     return html;
   }
 
-  public transform(value: string): SafeHtml {
+  public transform(value: string, loadImages = false): SafeHtml {
     if (!value) {
       return "";
     }
     try {
-      const html = this.parseBlockMarkdown(value);
+      const html = this.parseBlockMarkdown(value, loadImages);
       return this.sanitizer.bypassSecurityTrustHtml(html);
     } catch (error) {
       console.error("Error parsing markdown:", error);

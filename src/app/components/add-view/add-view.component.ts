@@ -5,6 +5,7 @@ import {SocketService} from "../../services/socket.service";
 import {AlertService} from "../../services/alert.service";
 
 @Component({
+  standalone: false,
   selector: "app-add-view",
   styleUrls: ["./add-view.component.scss"],
   templateUrl: "./add-view.component.html",
