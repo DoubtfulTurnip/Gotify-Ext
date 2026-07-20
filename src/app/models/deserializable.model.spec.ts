@@ -1,7 +1,12 @@
-import { Deserializable } from "./deserializable.model";
+import {Deserializable} from "./deserializable.model";
 
 describe("Deserializable.Model", () => {
-  it("should create an instance", () => {
-    expect(new Deserializable()).toBeTruthy();
+  it("accepts a structural implementation", () => {
+    const value: Deserializable = {
+      deserialize(_input: any) {
+        return this;
+      },
+    };
+    expect(value.deserialize({})).toBe(value);
   });
 });

@@ -1,23 +1,18 @@
-// Custom Angular Material theme with light/dark mode support
-@import '~@angular/material/theming';
+// Angular Material theme with light/dark mode support
+@use '@angular/material' as mat;
 
-// Include core styles once (typography, ripple, a11y, overlay)
-@include mat-core();
+@include mat.core();
 
-// Define palettes to match the original indigo-pink prebuilt theme
-$app-primary: mat-palette($mat-indigo);
-$app-accent:  mat-palette($mat-pink, A200, A100, A400);
-$app-warn:    mat-palette($mat-red);
+$app-primary: mat.m2-define-palette(mat.$m2-indigo-palette);
+$app-accent: mat.m2-define-palette(mat.$m2-pink-palette, A200, A100, A400);
+$app-warn: mat.m2-define-palette(mat.$m2-red-palette);
+$app-light-theme: mat.m2-define-light-theme((color: (primary: $app-primary, accent: $app-accent, warn: $app-warn)));
+$app-dark-theme: mat.m2-define-dark-theme((color: (primary: $app-primary, accent: $app-accent, warn: $app-warn)));
 
-// --- Light theme (default) ---
-$app-light-theme: mat-light-theme($app-primary, $app-accent, $app-warn);
-@include angular-material-theme($app-light-theme);
-
-// --- Dark theme (toggled via .dark-theme class on body) ---
-$app-dark-theme: mat-dark-theme($app-primary, $app-accent, $app-warn);
+@include mat.all-component-themes($app-light-theme);
 
 .dark-theme {
-  @include angular-material-color($app-dark-theme);
+  @include mat.all-component-colors($app-dark-theme);
 }
 
 // ============================================================

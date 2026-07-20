@@ -4,6 +4,7 @@ import {faChevronCircleUp} from "@fortawesome/free-solid-svg-icons/faChevronCirc
 import {ScrollService} from "../../services/scroll.service";
 
 @Component({
+  standalone: false,
   selector: "app-back-to-top",
   styleUrls: ["./back-to-top.component.scss"],
   templateUrl: "./back-to-top.component.html",

@@ -16,6 +16,7 @@
   },
   "permissions": [
     "storage",
+    "downloads",
     "<all_urls>"
   ],
   "browser_action": {

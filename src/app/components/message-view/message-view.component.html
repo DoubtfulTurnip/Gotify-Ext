@@ -4,22 +4,76 @@
   <p>Messages will appear here when received</p>
 </div>
 <ng-template #messageList>
-  <button mat-stroked-button color="warn" class="delete-all-btn" (click)="DeleteAllMessages()">
-    <mat-icon>delete_sweep</mat-icon> Clear All
-  </button>
-  <mat-card *ngFor="let message of viewMessages | orderBy:'-date'; let i = index" class="message-card">
+  <div class="list-toolbar">
+    <button mat-stroked-button color="warn" class="delete-all-btn" (click)="DeleteAllMessages()">
+      <mat-icon>delete_sweep</mat-icon> Clear All
+    </button>
+    <mat-form-field class="sort-field" appearance="outline">
+      <mat-label>Sort</mat-label>
+      <mat-select [(ngModel)]="sortMode">
+        <mat-option value="date">Newest first</mat-option>
+        <mat-option value="priority">Priority first</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <mat-card *ngFor="let message of sortedMessages()" class="message-card">
     <mat-card-header>
-      <img *ngIf="getAppIcon(message)" mat-card-avatar [src]="getAppIcon(message)" class="msg-avatar" loading="lazy" [alt]="message.title">
+      <img *ngIf="getAppIcon(message)" mat-card-avatar [src]="getAppIcon(message)" class="msg-avatar"
+           loading="lazy" [alt]="message.title">
       <mat-icon *ngIf="!getAppIcon(message)" mat-card-avatar class="msg-avatar">notifications</mat-icon>
       <mat-card-title class="msg-title">{{message.title}}</mat-card-title>
       <mat-card-subtitle *ngIf="url === 'All'" class="msg-subtitle">{{message.url}}</mat-card-subtitle>
+      <span class="priority-badge" [class.priority-high]="message.priority >= 5"
+            [class.priority-urgent]="message.priority >= 8">{{priorityLabel(message.priority)}}</span>
     </mat-card-header>
-    <mat-card-content class="msg-content" [innerHTML]="message.message | markdown">
-    </mat-card-content>
+
+    <div class="message-body" [class.collapsed]="isLong(message) && !isExpanded(message)">
+      <mat-card-content *ngIf="message.isMarkdown(); else plainMessage" class="msg-content"
+                        [innerHTML]="message.message | markdown:mediaLoaded(message)">
+      </mat-card-content>
+      <ng-template #plainMessage>
+        <mat-card-content class="msg-content plain-message">{{message.message}}</mat-card-content>
+      </ng-template>
+
+      <div *ngIf="message.bigImageUrl() as imageUrl" class="big-image-area">
+        <button *ngIf="!mediaLoaded(message)" mat-stroked-button (click)="loadMedia(message)">
+          <mat-icon>image</mat-icon> Load remote image
+        </button>
+        <a *ngIf="mediaLoaded(message)" [href]="imageUrl" target="_blank" rel="noopener noreferrer"
+           title="Open image in a new tab">
+          <img [src]="imageUrl" class="big-image" loading="lazy" [alt]="message.title || 'Message image'">
+        </a>
+      </div>
+    </div>
+
+    <button *ngIf="hasRemoteMedia(message) && !mediaLoaded(message) && !message.bigImageUrl()"
+            mat-stroked-button class="load-media-btn" (click)="loadMedia(message)">
+      <mat-icon>image</mat-icon> Load remote images
+    </button>
+    <button *ngIf="isLong(message)" mat-button class="expand-btn" (click)="toggleExpanded(message)">
+      {{isExpanded(message) ? 'Show less' : 'Show more'}}
+    </button>
+
     <mat-card-actions class="msg-actions" align="end">
       <span class="msg-timestamp">{{message.date | dateAgo}}</span>
       <span class="spacer"></span>
-      <button mat-icon-button color="warn" class="msg-delete-btn" (click)="DeleteMessage(message, i)" title="Delete message">
+      <button mat-icon-button (click)="copyMessage(message)" title="Copy message">
+        <mat-icon>content_copy</mat-icon>
+      </button>
+      <button *ngIf="message.clickUrl()" mat-icon-button (click)="openUrl(message.clickUrl())"
+              title="Open message link">
+        <mat-icon>open_in_new</mat-icon>
+      </button>
+      <button mat-icon-button (click)="openUrl(message.url)" title="Open Gotify server">
+        <mat-icon>dns</mat-icon>
+      </button>
+      <button *ngIf="message.bigImageUrl()" mat-icon-button (click)="downloadImage(message)"
+              title="Download image">
+        <mat-icon>download</mat-icon>
+      </button>
+      <button mat-icon-button color="warn" class="msg-delete-btn" (click)="DeleteMessage(message)"
+              title="Delete message">
         <fa-icon [icon]="faTrashAlt"></fa-icon>
       </button>
     </mat-card-actions>

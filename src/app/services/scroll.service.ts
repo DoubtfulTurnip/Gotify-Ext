@@ -14,13 +14,13 @@ export class ScrollService {
 
   public setScrollBarRef(ref: NgScrollbar) {
     this.scrollbarRef = ref;
-    this.scrollbarRef.scrolled.subscribe((e) => {
-      if (e.target.scrollTop > ScrollService.BACK_TO_TOP_THRESHOLD) {
+    this.scrollbarRef.nativeElement.addEventListener("scroll", () => {
+      if (this.scrollbarRef.nativeElement.scrollTop > ScrollService.BACK_TO_TOP_THRESHOLD) {
         this.backToTop.show();
       } else {
         this.backToTop.hide();
       }
-    });
+    }, {passive: true});
   }
 
   public scrollToBottom() {

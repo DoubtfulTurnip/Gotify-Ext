@@ -16,6 +16,7 @@ import {SocketService} from "./services/socket.service";
 import {ThemeService} from "./services/theme.service";
 
 @Component({
+  standalone: false,
   selector: "app-root",
   styleUrls: ["./app.component.scss"],
   templateUrl: "./app.component.html",
