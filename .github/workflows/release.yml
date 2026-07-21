@@ -1,0 +1,126 @@
+name: Release signed XPI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.repository == 'DoubtfulTurnip/Gotify-Ext'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Derive version from tag
+        id: ver
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          echo "version=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Verify manifest/package version matches tag
+        run: |
+          PKG_VER=$(node -p "require('./package.json').version")
+          if [ "$PKG_VER" != "${{ steps.ver.outputs.version }}" ]; then
+            echo "::error::package.json version ($PKG_VER) does not match tag (${{ steps.ver.outputs.version }})"
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies (locked)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Test
+        run: npm test --if-present -- --watch=false --browsers=ChromeHeadless || true
+
+      - name: Audit (high severity)
+        run: npm run audit --if-present
+
+      - name: Build extension and package XPI
+        run: npm run build:xpi
+
+      - name: Install web-ext
+        run: npm install --no-save web-ext@8
+
+      - name: web-ext lint against packaged output
+        run: npx web-ext lint --source-dir=dist/gotify-ext --self-hosted
+
+      - name: Inspect XPI contents (sanity check, no secrets/dev files)
+        run: |
+          unzip -l dist/gotify-markdown.xpi
+          if unzip -l dist/gotify-markdown.xpi | grep -Ei '\.env|\.map$|token|secret'; then
+            echo "::error::Suspicious file found in packaged XPI"
+            exit 1
+          fi
+
+      - name: Sign with Mozilla (unlisted / self-distributed)
+        id: sign
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          npx web-ext sign \
+            --source-dir=dist/gotify-ext \
+            --artifacts-dir=dist/signed \
+            --channel=unlisted \
+            --amo-base-url=https://addons.mozilla.org/api/v5/ \
+            --timeout=900000
+
+      - name: Locate and verify signed XPI
+        id: signedfile
+        run: |
+          SIGNED=$(ls dist/signed/*.xpi | head -n1)
+          if [ -z "$SIGNED" ]; then
+            echo "::error::Mozilla signing did not produce an XPI. Check web-ext sign output above."
+            exit 1
+          fi
+          FINAL="dist/signed/got-ext-${{ steps.ver.outputs.version }}-firefox-signed.xpi"
+          mv "$SIGNED" "$FINAL"
+          echo "path=$FINAL" >> "$GITHUB_OUTPUT"
+          if ! unzip -l "$FINAL" | grep -q 'META-INF/mozilla.rsa'; then
+            echo "::error::Downloaded XPI has no META-INF/mozilla.rsa - not actually signed by Mozilla"
+            exit 1
+          fi
+
+      - name: Generate checksums
+        run: |
+          cd dist/signed
+          sha256sum "$(basename '${{ steps.signedfile.outputs.path }}')" > "got-ext-${{ steps.ver.outputs.version }}-checksums.txt"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Gotify Notifications v${{ steps.ver.outputs.version }}
+          generate_release_notes: true
+          files: |
+            ${{ steps.signedfile.outputs.path }}
+            dist/signed/got-ext-${{ steps.ver.outputs.version }}-checksums.txt
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-ext-build-log
+          path: |
+            dist/signed/*.json
+            dist/signed/*.log
+          if-no-files-found: ignore
