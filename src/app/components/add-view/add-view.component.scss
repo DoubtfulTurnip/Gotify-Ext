@@ -12,3 +12,14 @@
   flex-direction: column;
   justify-content: center;
 }
+
+.spin {
+  animation: add-view-spin 1s linear infinite;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+@keyframes add-view-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -11,6 +11,16 @@ body {
 }
 app-root { height: 500px; display: block; }
 
+/* Allow form-field hints/errors to wrap to multiple lines instead of being
+   clipped to a single line by Material's fixed-height subscript wrapper. */
+.mat-mdc-form-field-subscript-wrapper {
+  overflow: visible;
+}
+.mat-mdc-form-field-hint, .mat-mdc-form-field-error {
+  white-space: normal;
+  line-height: 1.3;
+}
+
 /* Scrollbar customization */
 ::-webkit-scrollbar {
   width: 6px;

@@ -9,6 +9,7 @@ import {filter, first} from "rxjs/operators";
 import {environment} from "../environments/environment";
 import {GotifySocket} from "./classes/gotify-socket";
 import {AlertService} from "./services/alert.service";
+import {ConfirmService} from "./services/confirm.service";
 import {FilterService} from "./services/filter.service";
 import {ScrollService} from "./services/scroll.service";
 import {SidenavService} from "./services/sidenav.service";
@@ -33,7 +34,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   constructor(public sockets: SocketService, private sidenavService: SidenavService, private router: Router,
               public filterService: FilterService, private alert: AlertService, private scroll: ScrollService,
-              public themeService: ThemeService) {
+              public themeService: ThemeService, private confirmDialog: ConfirmService) {
   }
 
   public ngOnInit() {
@@ -83,17 +84,39 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.scroll.setScrollBarRef(this.scrollable);
   }
 
+  /** True when this instance is already a popped-out window, so we don't offer to pop out again. */
+  public isPoppedOut(): boolean {
+    return new URLSearchParams(window.location.search).has("popout");
+  }
+
+  /** Open the extension UI in its own persistent window, like Bitwarden's pop-out. */
+  public popOut(): void {
+    const url = chrome.runtime.getURL("index.html?popout=1");
+    chrome.windows.create({url, type: "popup", width: 820, height: 560}, () => {
+      window.close();
+    });
+  }
+
   public encodeURL(url: string) {
     return encodeURIComponent(url);
   }
 
   public DeleteCurrentUrl() {
-    this.sockets.close(this.currentURL);
-    if (this.sockets.getNumConnections() > 0) {
-      this.router.navigate(["/server"]);
-    } else {
-      this.router.navigate(["/add"]);
-    }
-    this.sidenavService.close("mgmt");
+    this.confirmDialog.confirm({
+      title: "Remove server",
+      message: `Remove ${this.currentURL} from this extension? You'll need to add it again to reconnect.`,
+      confirmLabel: "Remove",
+    }).subscribe((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      this.sockets.close(this.currentURL);
+      if (this.sockets.getNumConnections() > 0) {
+        this.router.navigate(["/server"]);
+      } else {
+        this.router.navigate(["/add"]);
+      }
+      this.sidenavService.close("mgmt");
+    });
   }
 }

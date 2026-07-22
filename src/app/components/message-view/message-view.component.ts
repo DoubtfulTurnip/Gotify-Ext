@@ -8,6 +8,7 @@ import {Application} from "../../models/application.model";
 import {BulkMessages} from "../../models/bulk-messages.model";
 import {Message} from "../../models/message.model";
 import {AlertService} from "../../services/alert.service";
+import {ConfirmService} from "../../services/confirm.service";
 import {FilterService} from "../../services/filter.service";
 import {GotifyAPIService} from "../../services/gotify-api.service";
 import {ScrollService} from "../../services/scroll.service";
@@ -39,7 +40,7 @@ export class MessageViewComponent implements OnInit, OnDestroy {
 
   constructor(private route: ActivatedRoute, private gotifyAPI: GotifyAPIService, private sockets: SocketService,
               private alert: AlertService, private filterService: FilterService, private scroll: ScrollService,
-              private cdr: ChangeDetectorRef) {
+              private cdr: ChangeDetectorRef, private confirmDialog: ConfirmService) {
   }
 
   public ngOnInit() {
@@ -142,22 +143,34 @@ export class MessageViewComponent implements OnInit, OnDestroy {
   }
 
   public DeleteAllMessages() {
-    if (this.url === "All") {
-      this.sockets.initSocket().pipe(takeUntil(this.destroy$)).subscribe((res: GotifySocket) => {
-        this.gotifyAPI.DeleteAllMessages(res.GetURL(), res.GetToken()).subscribe(() => {
-          // Maybe there's a nicer way of doing this. idk right now
-          this.messages = this.messages.filter((msg) => {
-            return msg.url !== res.GetURL();
-          });
+    const target = this.url === "All" ? "every connected server" : this.url;
+    this.confirmDialog.confirm({
+      title: "Clear all messages",
+      message: `Permanently delete all messages for ${target}? This can't be undone.`,
+      confirmLabel: "Clear all",
+    }).subscribe((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      if (this.url === "All") {
+        this.sockets.initSocket().pipe(takeUntil(this.destroy$)).subscribe((res: GotifySocket) => {
+          this.gotifyAPI.DeleteAllMessages(res.GetURL(), res.GetToken()).subscribe(() => {
+            // Maybe there's a nicer way of doing this. idk right now
+            this.messages = this.messages.filter((msg) => {
+              return msg.url !== res.GetURL();
+            });
+            this.filterMessages();
+            this.cdr.detectChanges();
+          }, (err) => this.alert.error(err, `Unable to delete all messages for ${res.url}`));
+        });
+      } else {
+        this.gotifyAPI.DeleteAllMessages(this.url, this.sockets.getSocket(this.url).GetToken()).subscribe(() => {
+          this.messages = [];
           this.filterMessages();
-        }, (err) => this.alert.error(err, `Unable to delete all messages for ${res.url}`));
-      });
-    } else {
-      this.gotifyAPI.DeleteAllMessages(this.url, this.sockets.getSocket(this.url).GetToken()).subscribe(() => {
-        this.messages = [];
-        this.filterMessages();
-      }, (err) => this.alert.error(err, `Unable to delete all messages`));
-    }
+          this.cdr.detectChanges();
+        }, (err) => this.alert.error(err, `Unable to delete all messages`));
+      }
+    });
   }
 
   private filterMessages() {

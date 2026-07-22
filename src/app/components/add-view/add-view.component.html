@@ -13,7 +13,9 @@
         <mat-option value="login">Login</mat-option>
       </mat-select>
       <mat-error *ngIf="authType.invalid">{{getError(authType)}}</mat-error>
-      <mat-hint *ngIf="authType.value === 'login'">Username & Password won't be stored, only used to generate a token</mat-hint>
+      <mat-hint *ngIf="authType.value === 'login'" class="auth-hint">
+        Used once to create an access token. Your username and password are not saved.
+      </mat-hint>
     </mat-form-field>
     <br>
     <br>
@@ -45,6 +47,9 @@
     </ng-template>
   </div>
   <div id="btn-container">
-    <button color="primary" mat-raised-button (click)="Add()" [disabled]="AnyFormControlInvalid()">ADD</button>
+    <button color="primary" mat-raised-button (click)="Add()" [disabled]="AnyFormControlInvalid() || submitting">
+      <mat-icon *ngIf="submitting" class="spin">autorenew</mat-icon>
+      {{submitting ? 'Adding...' : 'ADD'}}
+    </button>
   </div>
 </div>
