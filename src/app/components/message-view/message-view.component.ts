@@ -56,17 +56,20 @@ export class MessageViewComponent implements OnInit, OnDestroy {
           res.GetMessageSubscription().subscribe((msg) => {
             this.AddMessage(msg);
             this.filterMessages();
+            this.cdr.detectChanges();
           }, (err) => this.alert.error(err, `Unable to open socket to: ${res.url}`));
         });
       } else {
         this.sockets.getSocket(this.url).GetMessageSubscription().subscribe((msg) => {
           this.AddMessage(msg);
           this.filterMessages();
+          this.cdr.detectChanges();
         }, (err) => this.alert.error(err, `Unable to open socket`));
       }
 
       this.filterService.changed$.pipe(takeUntil(this.destroy$)).subscribe(() => {
         this.filterMessages();
+        this.cdr.detectChanges();
       });
     });
   }

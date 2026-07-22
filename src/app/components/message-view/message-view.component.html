@@ -30,7 +30,7 @@
 
     <div class="message-body" [class.collapsed]="isLong(message) && !isExpanded(message)">
       <mat-card-content *ngIf="message.isMarkdown(); else plainMessage" class="msg-content"
-                        [innerHTML]="message.message | markdown:mediaLoaded(message)">
+                        [innerHTML]="message.message | markdown:(mediaLoaded(message) && !message.bigImageUrl())">
       </mat-card-content>
       <ng-template #plainMessage>
         <mat-card-content class="msg-content plain-message">{{message.message}}</mat-card-content>

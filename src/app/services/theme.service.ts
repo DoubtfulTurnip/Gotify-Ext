@@ -13,15 +13,23 @@ export class ThemeService {
   private themeSubject = new BehaviorSubject<Theme>("light");
   public theme$ = this.themeSubject.asObservable();
 
+  /** True once the user has explicitly toggled the theme this session. */
+  private userOverride = false;
+
   constructor() {
     this.loadTheme();
   }
 
   /**
    * Load saved theme preference, falling back to system prefers-color-scheme.
+   * Guarded by `userOverride` so a slow storage read can't clobber a toggle
+   * the user has already performed while this was in flight.
    */
   private loadTheme(): void {
     chrome.storage.local.get(ThemeService.STORAGE_KEY, (res) => {
+      if (this.userOverride) {
+        return;
+      }
       if (res && ThemeService.STORAGE_KEY in res) {
         this.applyTheme(res[ThemeService.STORAGE_KEY] as Theme);
       } else {
@@ -33,6 +41,7 @@ export class ThemeService {
 
   /** Toggle between light and dark. Persists the choice. */
   public toggle(): void {
+    this.userOverride = true;
     const newTheme: Theme = this.themeSubject.value === "light" ? "dark" : "light";
     this.applyTheme(newTheme);
     chrome.storage.local.set({ [ThemeService.STORAGE_KEY]: newTheme });
