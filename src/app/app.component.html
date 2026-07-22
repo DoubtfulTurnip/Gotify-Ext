@@ -26,13 +26,6 @@
           Remove server
         </button>
       </mat-list-item>
-      <hr>
-      <mat-list-item>
-        <mat-checkbox color="primary" [checked]="settings.autoLoadImages"
-                      (change)="settings.setAutoLoadImages($event.checked)">
-          <p>Load images automatically</p>
-        </mat-checkbox>
-      </mat-list-item>
       <div *ngIf="filterService.applicationFiltered">
         <hr>
         <mat-list-item color="primary" *ngFor="let app of filterService.applicationFiltered | keyvalue">

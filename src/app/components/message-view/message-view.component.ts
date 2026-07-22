@@ -12,7 +12,6 @@ import {ConfirmService} from "../../services/confirm.service";
 import {FilterService} from "../../services/filter.service";
 import {GotifyAPIService} from "../../services/gotify-api.service";
 import {ScrollService} from "../../services/scroll.service";
-import {SettingsService} from "../../services/settings.service";
 import {SocketService} from "../../services/socket.service";
 
 @Component({
@@ -36,13 +35,12 @@ export class MessageViewComponent implements OnInit, OnDestroy {
   public showLoadMore = true;
   public numLoading = 0;
   public sortMode: "date" | "priority" = "date";
-  private loadedMedia = new Set<string>();
+  public urgencyFilter: "all" | "urgent" | "high" | "normal" = "all";
   private expandedMessages = new Set<string>();
 
   constructor(private route: ActivatedRoute, private gotifyAPI: GotifyAPIService, private sockets: SocketService,
               private alert: AlertService, private filterService: FilterService, private scroll: ScrollService,
-              private cdr: ChangeDetectorRef, private confirmDialog: ConfirmService,
-              public settings: SettingsService) {
+              private cdr: ChangeDetectorRef, private confirmDialog: ConfirmService) {
   }
 
   public ngOnInit() {
@@ -122,6 +120,7 @@ export class MessageViewComponent implements OnInit, OnDestroy {
             this.oldestMsgPerServer.set(res.GetURL(), msgs.paging.since);
             this.filterMessages();
             this.decrementLoadingCount();
+            this.cdr.detectChanges();
           }, (err) => this.alert.error(err, `Unable to load previous messages for: ${res.url}`));
       });
     } else {
@@ -133,6 +132,7 @@ export class MessageViewComponent implements OnInit, OnDestroy {
           this.oldestMsgPerServer.set(this.url, msgs.paging.since);
           this.filterMessages();
           this.decrementLoadingCount();
+          this.cdr.detectChanges();
         }, (err) => this.alert.error(err, `Unable to load previous messages`));
     }
   }
@@ -209,7 +209,9 @@ export class MessageViewComponent implements OnInit, OnDestroy {
   }
 
   public sortedMessages(): Message[] {
-    return this.viewMessages.map((message, index) => ({message, index})).sort((a, b) => {
+    return this.viewMessages
+      .filter((message) => this.urgencyFilter === "all" || this.priorityTier(message.priority) === this.urgencyFilter)
+      .map((message, index) => ({message, index})).sort((a, b) => {
       const dateDelta = new Date(b.message.date).getTime() - new Date(a.message.date).getTime();
       const result = this.sortMode === "priority"
         ? (b.message.priority || 0) - (a.message.priority || 0) || dateDelta
@@ -222,17 +224,16 @@ export class MessageViewComponent implements OnInit, OnDestroy {
     return message.url + ":" + message.id;
   }
 
-  public mediaLoaded(message: Message): boolean {
-    return this.settings.autoLoadImages || this.loadedMedia.has(this.messageKey(message));
+  /** True when the message text already embeds an image via markdown, so the
+   *  dedicated bigImageUrl box would just be showing the same picture twice. */
+  public hasInlineImage(message: Message): boolean {
+    return message.isMarkdown() && /!\[[^\]]*\]\([^)]+\)/.test(message.message || "");
   }
 
-  public loadMedia(message: Message): void {
-    this.loadedMedia.add(this.messageKey(message));
-  }
-
-  public hasRemoteMedia(message: Message): boolean {
-    return !!message.bigImageUrl() ||
-      (message.isMarkdown() && /!\[[^\]]*\]\(https?:\/\//i.test(message.message || ""));
+  public priorityTier(priority: number): "urgent" | "high" | "normal" {
+    if ((priority || 0) >= 8) { return "urgent"; }
+    if ((priority || 0) >= 5) { return "high"; }
+    return "normal";
   }
 
   public isLong(message: Message): boolean {
