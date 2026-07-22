@@ -11,6 +11,19 @@ body {
 }
 app-root { height: 500px; display: block; }
 
+/* Pop-out window: it's a real, resizable window rather than the fixed-size
+   toolbar popup bubble, so let it fill whatever space it's given instead of
+   staying pinned to the popup's 800x500. */
+body.popped-out {
+  width: 100%;
+  height: 100vh;
+  min-width: 480px;
+  min-height: 360px;
+}
+body.popped-out app-root {
+  height: 100%;
+}
+
 /* Allow form-field hints/errors to wrap to multiple lines instead of being
    clipped to a single line by Material's fixed-height subscript wrapper. */
 .mat-mdc-form-field-subscript-wrapper {

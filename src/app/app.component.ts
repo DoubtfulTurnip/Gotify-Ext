@@ -12,6 +12,7 @@ import {AlertService} from "./services/alert.service";
 import {ConfirmService} from "./services/confirm.service";
 import {FilterService} from "./services/filter.service";
 import {ScrollService} from "./services/scroll.service";
+import {SettingsService} from "./services/settings.service";
 import {SidenavService} from "./services/sidenav.service";
 import {SocketService} from "./services/socket.service";
 import {ThemeService} from "./services/theme.service";
@@ -34,12 +35,19 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   constructor(public sockets: SocketService, private sidenavService: SidenavService, private router: Router,
               public filterService: FilterService, private alert: AlertService, private scroll: ScrollService,
-              public themeService: ThemeService, private confirmDialog: ConfirmService) {
+              public themeService: ThemeService, private confirmDialog: ConfirmService,
+              public settings: SettingsService) {
   }
 
   public ngOnInit() {
     if (!environment.production) {
       this.alert.info("dev mode");
+    }
+    if (this.isPoppedOut()) {
+      // The popup's fixed 800x500 sizing (see styles.scss) makes sense for the
+      // browser toolbar bubble, but a pop-out window is a real, user-resizable
+      // window - let it use the space it's given instead of staying pinned.
+      document.body.classList.add("popped-out");
     }
     this.sockets.loadConnections().then(() => {
       // If there's only one server, just go there, otherwise view all

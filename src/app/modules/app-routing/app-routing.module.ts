@@ -12,7 +12,12 @@ const routes: Routes = [
 
 @NgModule({
   exports: [RouterModule],
-  imports: [RouterModule.forRoot(routes)],
+  // Hash-based routing: the extension page is loaded from a literal
+  // "index.html" path (popup and pop-out window alike), which the default
+  // PathLocationStrategy can't match against any route ("" != "index.html"),
+  // causing a hard NG04002 navigation failure on every load. Hash routing
+  // matches on the URL fragment instead, which is independent of the path.
+  imports: [RouterModule.forRoot(routes, { useHash: true })],
 })
 export class AppRoutingModule {
 }

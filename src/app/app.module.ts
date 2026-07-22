@@ -19,7 +19,7 @@ import {MatSidenavModule} from "@angular/material/sidenav";
 import {MatToolbarModule} from "@angular/material/toolbar";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
-import {NgScrollbarModule, provideScrollbarOptions} from "ngx-scrollbar";
+import {NgScrollbarModule, provideScrollbarOptions, provideScrollbarPolyfill} from "ngx-scrollbar";
 import {ToastrModule} from "ngx-toastr";
 import {AppComponent} from "./app.component";
 import {AddViewComponent} from "./components/add-view/add-view.component";
@@ -74,10 +74,14 @@ import {MarkdownPipe} from "./pipes/markdown.pipe";
     MatDialogModule,
     OverlayModule,
   ],
-  providers: [provideScrollbarOptions({
-    appearance: "compact",
-    visibility: "hover",
-  })],
+  providers: [
+    provideScrollbarOptions({
+      appearance: "compact",
+      visibility: "hover",
+    }),
+    // See src/assets/scroll-timeline-polyfill.js for why this points locally.
+    provideScrollbarPolyfill("assets/scroll-timeline-polyfill.js"),
+  ],
 })
 export class AppModule {
 }
