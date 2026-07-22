@@ -7,6 +7,7 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {MatButtonModule} from "@angular/material/button";
 import {MatCardModule} from "@angular/material/card";
 import {MatCheckboxModule} from "@angular/material/checkbox";
+import {MatDialogModule} from "@angular/material/dialog";
 import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatGridListModule} from "@angular/material/grid-list";
 import {MatIconModule} from "@angular/material/icon";
@@ -23,6 +24,7 @@ import {ToastrModule} from "ngx-toastr";
 import {AppComponent} from "./app.component";
 import {AddViewComponent} from "./components/add-view/add-view.component";
 import {BackToTopComponent} from "./components/back-to-top/back-to-top.component";
+import {ConfirmDialogComponent} from "./components/confirm-dialog/confirm-dialog.component";
 import {MessageViewComponent} from "./components/message-view/message-view.component";
 import {AppRoutingModule} from "./modules/app-routing/app-routing.module";
 import {DateAgoPipe} from "./pipes/date-ago.pipe";
@@ -39,6 +41,7 @@ import {MarkdownPipe} from "./pipes/markdown.pipe";
     OrderByDatePipe,
     MarkdownPipe,
     BackToTopComponent,
+    ConfirmDialogComponent,
   ],
   imports: [
     BrowserModule,
@@ -68,6 +71,7 @@ import {MarkdownPipe} from "./pipes/markdown.pipe";
     }),
     MatCheckboxModule,
     MatProgressBarModule,
+    MatDialogModule,
     OverlayModule,
   ],
   providers: [provideScrollbarOptions({

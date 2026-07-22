@@ -29,7 +29,7 @@
       <div *ngIf="filterService.applicationFiltered">
         <hr>
         <mat-list-item color="primary" *ngFor="let app of filterService.applicationFiltered | keyvalue">
-          <mat-checkbox color="primary" [(ngModel)]="app.value" (click)="filterService.toggle(app.key)">
+          <mat-checkbox color="primary" [checked]="app.value" (click)="filterService.toggle(app.key)">
             <p>{{ app.key.name }}</p></mat-checkbox>
         </mat-list-item>
       </div>
@@ -48,6 +48,11 @@
             <h1 class="toolbar-title">{{ currentURL }}</h1>
           </ng-template>
           <span class="toolbar-spacer"></span>
+          <button *ngIf="!isPoppedOut()" mat-icon-button
+                  (click)="popOut()"
+                  title="Open in a separate window">
+            <mat-icon>open_in_new</mat-icon>
+          </button>
           <button mat-icon-button
                   (click)="themeService.toggle()"
                   title="Toggle dark mode">

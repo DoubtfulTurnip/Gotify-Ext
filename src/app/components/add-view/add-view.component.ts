@@ -1,5 +1,6 @@
 import {Component} from "@angular/core";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
+import {Router} from "@angular/router";
 import {GotifyAPIService} from "../../services/gotify-api.service";
 import {SocketService} from "../../services/socket.service";
 import {AlertService} from "../../services/alert.service";
@@ -26,7 +27,10 @@ export class AddViewComponent {
     userName: this.userName,
   });
 
-  constructor(public sockets: SocketService, public gotifyAPI: GotifyAPIService, private alert: AlertService) {
+  public submitting = false;
+
+  constructor(public sockets: SocketService, public gotifyAPI: GotifyAPIService, private alert: AlertService,
+              private router: Router) {
   }
 
   public getError(formControl) {
@@ -49,11 +53,22 @@ export class AddViewComponent {
     if (this.authType.value === "token") {
       this.sockets.open(this.url.value, this.token.value);
       this.alert.info(`Added ${this.url.value}`);
+      this.goToServer(this.url.value);
     } else if (this.authType.value === "login") {
+      this.submitting = true;
       this.gotifyAPI.GetClientToken(this.url.value, this.userName.value, this.password.value, this.appName.value).subscribe((res) => {
+        this.submitting = false;
         this.sockets.open(this.url.value, res.token);
         this.alert.info(`Added ${this.url.value}`);
-      }, (err) => this.alert.error(err, "Error retrieving client token"));
+        this.goToServer(this.url.value);
+      }, (err) => {
+        this.submitting = false;
+        this.alert.error(err, "Error retrieving client token");
+      });
     }
+  }
+
+  private goToServer(url: string) {
+    this.router.navigate([`/server/${encodeURIComponent(url)}`]);
   }
 }
