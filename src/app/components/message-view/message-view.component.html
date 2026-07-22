@@ -15,6 +15,15 @@
         <mat-option value="priority">Priority first</mat-option>
       </mat-select>
     </mat-form-field>
+    <mat-form-field class="sort-field" appearance="outline">
+      <mat-label>Urgency</mat-label>
+      <mat-select [(ngModel)]="urgencyFilter">
+        <mat-option value="all">All</mat-option>
+        <mat-option value="urgent">Urgent</mat-option>
+        <mat-option value="high">High</mat-option>
+        <mat-option value="normal">Normal</mat-option>
+      </mat-select>
+    </mat-form-field>
   </div>
 
   <mat-card *ngFor="let message of sortedMessages()" class="message-card">
@@ -24,33 +33,28 @@
       <mat-icon *ngIf="!getAppIcon(message)" mat-card-avatar class="msg-avatar">notifications</mat-icon>
       <mat-card-title class="msg-title">{{message.title}}</mat-card-title>
       <mat-card-subtitle *ngIf="url === 'All'" class="msg-subtitle">{{message.url}}</mat-card-subtitle>
-      <span class="priority-badge" [class.priority-high]="message.priority >= 5"
-            [class.priority-urgent]="message.priority >= 8">{{priorityLabel(message.priority)}}</span>
+      <span class="priority-badge" [class.priority-high]="priorityTier(message.priority) === 'high'"
+            [class.priority-urgent]="priorityTier(message.priority) === 'urgent'">{{priorityLabel(message.priority)}}</span>
     </mat-card-header>
 
     <div class="message-body" [class.collapsed]="isLong(message) && !isExpanded(message)">
       <mat-card-content *ngIf="message.isMarkdown(); else plainMessage" class="msg-content"
-                        [innerHTML]="message.message | markdown:(mediaLoaded(message) && !message.bigImageUrl())">
+                        [innerHTML]="message.message | markdown:true">
       </mat-card-content>
       <ng-template #plainMessage>
         <mat-card-content class="msg-content plain-message">{{message.message}}</mat-card-content>
       </ng-template>
 
+      <!-- Only shown when the message doesn't already embed this image inline via markdown,
+           so the picture isn't rendered twice. -->
       <div *ngIf="message.bigImageUrl() as imageUrl" class="big-image-area">
-        <button *ngIf="!mediaLoaded(message)" mat-stroked-button (click)="loadMedia(message)">
-          <mat-icon>image</mat-icon> Load remote image
-        </button>
-        <a *ngIf="mediaLoaded(message)" [href]="imageUrl" target="_blank" rel="noopener noreferrer"
+        <a *ngIf="!hasInlineImage(message)" [href]="imageUrl" target="_blank" rel="noopener noreferrer"
            title="Open image in a new tab">
           <img [src]="imageUrl" class="big-image" loading="lazy" [alt]="message.title || 'Message image'">
         </a>
       </div>
     </div>
 
-    <button *ngIf="hasRemoteMedia(message) && !mediaLoaded(message) && !message.bigImageUrl()"
-            mat-stroked-button class="load-media-btn" (click)="loadMedia(message)">
-      <mat-icon>image</mat-icon> Load remote images
-    </button>
     <button *ngIf="isLong(message)" mat-button class="expand-btn" (click)="toggleExpanded(message)">
       {{isExpanded(message) ? 'Show less' : 'Show more'}}
     </button>

@@ -12,7 +12,6 @@ import {AlertService} from "./services/alert.service";
 import {ConfirmService} from "./services/confirm.service";
 import {FilterService} from "./services/filter.service";
 import {ScrollService} from "./services/scroll.service";
-import {SettingsService} from "./services/settings.service";
 import {SidenavService} from "./services/sidenav.service";
 import {SocketService} from "./services/socket.service";
 import {ThemeService} from "./services/theme.service";
@@ -35,8 +34,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   constructor(public sockets: SocketService, private sidenavService: SidenavService, private router: Router,
               public filterService: FilterService, private alert: AlertService, private scroll: ScrollService,
-              public themeService: ThemeService, private confirmDialog: ConfirmService,
-              public settings: SettingsService) {
+              public themeService: ThemeService, private confirmDialog: ConfirmService) {
   }
 
   public ngOnInit() {

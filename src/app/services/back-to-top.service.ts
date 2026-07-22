@@ -10,19 +10,13 @@ export class BackToTopService {
   private overlayRef: OverlayRef;
 
   constructor(private overlay: Overlay) {
-    this.overlayRef = this.overlay.create();
-    this.overlayRef.updatePositionStrategy(
-      this.overlay.position().flexibleConnectedTo({x: 0, y: 0, width: 800, height: 500})
-        .withPositions([
-            {
-              originX: "end",
-              originY: "bottom",
-              overlayX: "end",
-              overlayY: "bottom",
-            },
-          ],
-        ),
-    );
+    // Dock to the real viewport's bottom-right corner rather than a fixed
+    // 800x500 virtual rectangle - the popup is that size, but a popped-out
+    // window is user-resizable, and the old fixed anchor left the button
+    // stranded mid-screen once the window grew past 800x500.
+    this.overlayRef = this.overlay.create({
+      positionStrategy: this.overlay.position().global().bottom("10px").right("10px"),
+    });
   }
 
   public show() {
