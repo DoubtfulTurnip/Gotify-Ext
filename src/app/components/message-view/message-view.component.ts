@@ -12,6 +12,7 @@ import {ConfirmService} from "../../services/confirm.service";
 import {FilterService} from "../../services/filter.service";
 import {GotifyAPIService} from "../../services/gotify-api.service";
 import {ScrollService} from "../../services/scroll.service";
+import {SettingsService} from "../../services/settings.service";
 import {SocketService} from "../../services/socket.service";
 
 @Component({
@@ -40,7 +41,8 @@ export class MessageViewComponent implements OnInit, OnDestroy {
 
   constructor(private route: ActivatedRoute, private gotifyAPI: GotifyAPIService, private sockets: SocketService,
               private alert: AlertService, private filterService: FilterService, private scroll: ScrollService,
-              private cdr: ChangeDetectorRef, private confirmDialog: ConfirmService) {
+              private cdr: ChangeDetectorRef, private confirmDialog: ConfirmService,
+              public settings: SettingsService) {
   }
 
   public ngOnInit() {
@@ -221,7 +223,7 @@ export class MessageViewComponent implements OnInit, OnDestroy {
   }
 
   public mediaLoaded(message: Message): boolean {
-    return this.loadedMedia.has(this.messageKey(message));
+    return this.settings.autoLoadImages || this.loadedMedia.has(this.messageKey(message));
   }
 
   public loadMedia(message: Message): void {
